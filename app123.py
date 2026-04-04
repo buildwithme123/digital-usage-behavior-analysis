@@ -6,9 +6,9 @@ import numpy as np
 # --- STEP 1: LOAD MODELS ---
 @st.cache_resource
 def load_models():
-    lr = joblib.load('logistic_regression_model.pkl')
-    rf = joblib.load('random_forest_model.pkl')
-    dt = joblib.load('decision_tree_model.pkl')
+    lr = joblib.load('logistic_regression.pkl')
+    rf = joblib.load('random_forest.pkl')
+    dt = joblib.load('decision_tree.pkl')
     return lr, rf, dt
 
 try:

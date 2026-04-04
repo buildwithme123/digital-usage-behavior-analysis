@@ -49,8 +49,8 @@ with col1:
     age = st.number_input("What is your age?", min_value=10, max_value=100, value=20)
     gender = st.selectbox("Gender", list(gender_map.keys()))
     usage = st.selectbox("Daily Smartphone Usage", list(smartphone_map.keys()))
-    app_cat = st.selectbox("Which category of apps do you use most?", 
-                            ["Social Media", "Entertainment", "Productivity", "Gaming", "Education"])
+    #app_cat = st.selectbox("Which category of apps do you use most?", 
+                           # ["Social Media", "Entertainment", "Productivity", "Gaming", "Education"])
     notif = st.selectbox("How often do you check notifications?", list(notification_map.keys()))
     sleep_before = st.selectbox("Do you use phone before sleeping?", ["Yes", "No"])
     sleep_time = st.selectbox("Hours of phone use before sleep?", list(sleep_map_time.keys()))
@@ -94,9 +94,9 @@ if st.button("Predict Productivity Level"):
 
     # 2. Handle One-Hot Encoding for 'Which categories of apps do you use the most?'
     # Initialize all columns to 0
-    categories = ['Social Media', 'Entertainment', 'Productivity', 'Gaming', 'Education']
-    for cat in categories:
-        data[f'Which categories of apps do you use the most?_{cat}'] = 1 if app_cat == cat else 0
+    #categories = ['Social Media', 'Entertainment', 'Productivity', 'Gaming', 'Education']
+    #for cat in categories:
+        #data[f'Which categories of apps do you use the most?_{cat}'] = 1 if app_cat == cat else 0
 
     # Convert to DataFrame
     input_df = pd.DataFrame([data])

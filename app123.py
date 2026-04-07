@@ -30,7 +30,7 @@ cgpa_map = {'less than 5': 0, '5-6': 1, '6-7': 2, '7-8': 3, '8-9': 4, 'more than
 addicted_map = {'very much': 0, 'Moderately': 1, 'not at all': 2}
 stressed_map = {'Never': 0, 'often': 1, 'rarely': 2}
 spending_map = {'agree': 0, 'neutral': 1, 'disagree': 2}
-anxious_map = {'always': 0, '2': 1, 'often': 2, 'rarely': 3, 'never': 4}
+anxious_map = {'always': 0,  'often': 2, 'rarely': 3, 'never': 4}
 yes_no_3map = {'No': 1, 'Yes': 0} # Mapping where No=1, Yes=0
 yes_no_1map = {'no': 0, 'yes': 1} # Mapping where No=0, Yes=1
 yes_no_2map = {'yes': 0, 'no': 1} # Mapping where Yes=0, No=1

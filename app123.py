@@ -8,18 +8,18 @@ import io
 @st.cache_resource
 def load_assets():
     try:
-        # NOTE: Filenames must match your GitHub exactly
         lr = joblib.load('logistic_regression.pkl')
         rf = joblib.load('random_forest.pkl')
         dt = joblib.load('decision_tree.pkl')
-        # Ensure you upload 'train_reference.csv' to GitHub
-        X_train = pd.read_csv('train_reference.csv') 
-        return lr, rf, dt, X_train
+        # Ensure you have uploaded 'train_reference.csv' to your GitHub
+        bg_data = pd.read_csv('train_reference.csv') 
+        return lr, rf, dt, bg_data
     except Exception as e:
-        st.error(f"Error loading assets: {e}")
+        st.error(f"Asset loading failed: {e}. Check GitHub for .pkl and .csv files.")
         return None, None, None, None
 
-lr, rf, dt, X_train = load_assets()
+
+lr, rf, dt, X_train_bg = load_assets()
 
 # --- STEP 2: DICTIONARIES ---
 FEATURE_LABELS = {

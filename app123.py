@@ -214,7 +214,7 @@ if st.button("Generate Detailed Report"):
     sel_model = rf if model_choice == "Random Forest" else (lr if model_choice == "Logistic Regression" else dt)
     
     with st.spinner("🔄 Computing Analysis..."):
-        shap_vals, pred_label, pred_proba = manual_shap_single(sel_model, input_df, X_train)
+        shap_vals, pred_label, pred_proba = manual_shap_single(sel_model, input_df, bg_data)
 
     # --- FORMATTING THE CONSOLE REPORT ---
     report_output = io.StringIO()

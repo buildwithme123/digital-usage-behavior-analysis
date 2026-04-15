@@ -9,9 +9,9 @@ import io
 def load_assets():
     try:
         # NOTE: Filenames must match your GitHub exactly
-        lr = joblib.load('logistic_regression_model.pkl')
-        rf = joblib.load('random_forest_model.pkl')
-        dt = joblib.load('decision_tree_model.pkl')
+        lr = joblib.load('logistic_regression.pkl')
+        rf = joblib.load('random_forest.pkl')
+        dt = joblib.load('decision_tree.pkl')
         # Ensure you upload 'train_reference.csv' to GitHub
         X_train = pd.read_csv('train_reference.csv') 
         return lr, rf, dt, X_train

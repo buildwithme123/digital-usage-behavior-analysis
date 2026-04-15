@@ -12,8 +12,8 @@ def load_assets():
         rf = joblib.load('random_forest.pkl')
         dt = joblib.load('decision_tree.pkl')
         # Ensure you have uploaded 'train_reference.csv' to your GitHub
-        bg_data = pd.read_csv('train_reference.csv') 
-        return lr, rf, dt, bg_data
+        X_train = pd.read_csv('train_reference.csv') 
+        return lr, rf, dt, X_train
     except Exception as e:
         st.error(f"Asset loading failed: {e}. Check GitHub for .pkl and .csv files.")
         return None, None, None, None
@@ -214,7 +214,7 @@ if st.button("Generate Detailed Report"):
     sel_model = rf if model_choice == "Random Forest" else (lr if model_choice == "Logistic Regression" else dt)
     
     with st.spinner("🔄 Computing Analysis..."):
-        shap_vals, pred_label, pred_proba = manual_shap_single(sel_model, input_df, bg_data)
+        shap_vals, pred_label, pred_proba = manual_shap_single(sel_model, input_df, X_train)
 
     # --- FORMATTING THE CONSOLE REPORT ---
     report_output = io.StringIO()

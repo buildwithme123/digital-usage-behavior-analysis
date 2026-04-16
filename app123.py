@@ -166,26 +166,26 @@ model_choice = st.sidebar.selectbox("Model", ("Random Forest", "Logistic Regress
 
 col1, col2 = st.columns(2)
 with col1:
-    age = st.number_input("Age", 10, 100, 20)
+    age = st.number_input("What is your age?", 10, 100, 20)
     gender = st.selectbox("Gender", list(gender_map.keys()))
-    usage = st.selectbox("Smartphone Usage", list(smartphone_map.keys()))
-    notif = st.selectbox("Notification Frequency", list(notification_map.keys()))
+    usage = st.selectbox(" Daily Smartphone Usage", list(smartphone_map.keys()))
+    notif = st.selectbox("How often do you check notifications?", list(notification_map.keys()))
     social_media = st.selectbox("Approximate time spent per day on Social media ?(in hours)", list(approx_map.keys()))
-    sleep_before = st.selectbox("Phone before sleep?", ["Yes", "No"])
-    sleep_time = st.selectbox("Pre-sleep hours", list(sleep_map_time.keys()))
-    wake_up = st.selectbox("Phone on waking?", ["Yes", "No"])
-    daily_sleep = st.selectbox("Daily Sleep", list(hour_map.keys()))
+    sleep_before = st.selectbox("Do you use phone before sleeping?", ["Yes", "No"])
+    sleep_time = st.selectbox("Hours before sleep usage", list(sleep_map_time.keys()))
+    wake_up = st.selectbox("Use device immediately after waking up?", ["Yes", "No"])
+    daily_sleep = st.selectbox("Total sleep hours daily?", list(hour_map.keys()))
 
 with col2:
-    tired = st.selectbox("Tiredness", list(tired_map.keys()))
-    study_hrs = st.selectbox("Study Hours", list(study_map.keys()))
-    cgpa_val = st.selectbox("CGPA", list(cgpa_map.keys()))
-    focus_val = st.selectbox("Focus?", ["yes", "no"])
-    stress_val = st.selectbox("Digital stress?", ["yes", "no"])
-    addict_val = st.selectbox("Addiction?", list(addicted_map.keys()))
-    scr_stress = st.selectbox("Screen stress?", list(stressed_map.keys()))
-    mood_val = st.selectbox("Mood affected?", list(spending_map.keys()))
-    anxious_val = st.selectbox("Phone anxiety?", list(anxious_map.keys()))
+    tired = st.selectbox("Feel tired/sleepy during the day?", list(tired_map.keys()))
+    study_hrs = st.selectbox("Daily Study Hours?", list(study_map.keys()))
+    cgpa_val = st.selectbox("What is your CGPA?", list(cgpa_map.keys()))
+    focus_val = st.selectbox("Able to focus during study?", ["yes", "no"])
+    stress_val = st.selectbox("Digital usage is main source of stress?", ["yes", "no"])
+    addict_val = st.selectbox("Feel addicted to digital devices?", list(addicted_map.keys()))
+    scr_stress = st.selectbox("Stressed after long screen time?", list(stressed_map.keys()))
+    mood_val = st.selectbox("Spending time online affects mood?", list(spending_map.keys()))
+    anxious_val = st.selectbox("Anxious without phone/internet?", list(anxious_map.keys()))
 
 # --- STEP 6: PREDICTION & REPORT ---
 if st.button("Generate Detailed Report"):

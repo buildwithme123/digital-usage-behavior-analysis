@@ -160,7 +160,7 @@ yes_no_1map = {'no': 0, 'yes': 1}
 yes_no_2map = {'yes': 0, 'no': 1}
 
 # --- STEP 5: UI ---
-st.title("📊 Digital Usage Prediction System")
+st.title(" Digital Usage Productivity Analysis")
 st.sidebar.header("Configuration")
 model_choice = st.sidebar.selectbox("Model", ("Random Forest", "Logistic Regression", "Decision Tree"))
 
@@ -213,7 +213,7 @@ if st.button("Generate Detailed Report"):
     input_df = pd.DataFrame([data])
     sel_model = rf if model_choice == "Random Forest" else (lr if model_choice == "Logistic Regression" else dt)
     
-    with st.spinner("🔄 Computing Analysis..."):
+    with st.spinner(" Computing Analysis..."):
         shap_vals, pred_label, pred_proba = manual_shap_single(sel_model, input_df, X_train_bg)
 
     # --- FORMATTING THE CONSOLE REPORT ---
@@ -245,7 +245,7 @@ if st.button("Generate Detailed Report"):
     st.code(report_output.getvalue(), language="text")
 
     # --- SUGGESTIONS SECTION ---
-    st.markdown("### 💡 Recommendations")
+    st.markdown("###  Recommendations")
     for _, row in top.iterrows():
         label = row['Label']
         dir_key = get_factor_direction(label, row['Value'], row['SHAP'])

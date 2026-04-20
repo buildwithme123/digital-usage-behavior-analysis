@@ -4,24 +4,32 @@ import joblib
 import numpy as np
 import io
 
-# --- STEP 1: LOAD ASSETS ---
+# --- 1. ASSET LOADING ---
 @st.cache_resource
 def load_assets():
     try:
         lr = joblib.load('logistic_regression.pkl')
         rf = joblib.load('random_forest.pkl')
         dt = joblib.load('decision_tree.pkl')
-        # Ensure you have uploaded 'train_reference.csv' to your GitHub
         X_train = pd.read_csv('train_reference.csv') 
         return lr, rf, dt, X_train
     except Exception as e:
-        st.error(f"Asset loading failed: {e}. Check GitHub for .pkl and .csv files.")
+        st.error(f"Asset loading failed: {e}. Ensure .pkl and .csv files are in GitHub.")
         return None, None, None, None
-
 
 lr, rf, dt, X_train_bg = load_assets()
 
-# --- STEP 2: DICTIONARIES ---
+# --- 2. SESSION STATE MANAGEMENT ---
+if 'started' not in st.session_state:
+    st.session_state.started = False
+
+def start_analysis():
+    st.session_state.started = True
+
+def go_home():
+    st.session_state.started = False
+
+# --- 3. DICTIONARIES & MAPPINGS ---
 FEATURE_LABELS = {
     'What is your age?': 'Age',
     'Gender?': 'Gender',
@@ -47,7 +55,7 @@ CLASS_NAMES = ['Low Productive', 'Medium Productive', 'High Productive']
 CLASS_EMOJIS = ['🔴', '🟡', '🟢']
 
 SUGGESTIONS = {
-    'Daily Smartphone Usage (hrs)': {
+   'Daily Smartphone Usage (hrs)': {
         'high': " Your smartphone usage is high. Try setting daily screen-time limits (e.g., under 3 hrs) using built-in phone tools.",
         'low':  " Your smartphone usage is well-controlled. Keep it up!"
     },
@@ -115,7 +123,24 @@ SUGGESTIONS = {
     },
 }
 
-# --- STEP 3: LOGIC FUNCTIONS ---
+gender_map = {'Male': 0, 'Female': 1}
+smartphone_map = {'less than 2': 0, '2-4': 1, '4-6': 2, '6-8': 3, 'more than 8': 4}
+approx_map = {'less than 1': 0, '1-3': 1, '3-5': 2, 'more than 5': 3}
+notification_map = {'Instantly': 0, 'Every few minutes': 1, 'Every hour': 2, 'Rarely': 3}
+sleep_map_time = {'less than 1': 0, '1-2': 1, '2-3': 2, 'more than 3': 3}
+hour_map = {'less than 5': 0, '5-7': 1, 'more than 9': 2, '7-9': 3}
+tired_map = {'no': 2, 'sometimes': 1, 'yes': 0}
+study_map = {'less than 1': 0, '1-3': 1, '3-5': 2, 'more than 5': 3}
+cgpa_map = {'less than 5': 0, '5-6': 1, '6-7': 2, '7-8': 3, '8-9': 4, 'more than 9': 5}
+addicted_map = {'very much': 0, 'Moderately': 1, 'not at all': 2}
+stressed_map = {'Never': 0, 'often': 1, 'rarely': 2}
+spending_map = {'agree': 0, 'neutral': 1, 'disagree': 2}
+anxious_map = {'always': 0, 'often': 2, 'rarely': 3, 'never': 4}
+yes_no_3map = {'No': 1, 'Yes': 0}
+yes_no_1map = {'no': 0, 'yes': 1}
+yes_no_2map = {'yes': 0, 'no': 1}
+
+# --- 4. CALCULATION FUNCTIONS ---
 def get_factor_direction(feature_label, feature_value, shap_val):
     neg_high = {'Daily Smartphone Usage (hrs)', 'Daily Social Media Time (hrs)', 'Pre-Sleep Phone Duration (hrs)'}
     if feature_label in neg_high:
@@ -141,113 +166,163 @@ def manual_shap_single(model, sample, background, n_repeats=50):
             prev_val = pred_with
     return shapley / n_repeats, target_class, pred_proba
 
-# --- STEP 4: MAPPINGS ---
-gender_map = {'Male': 0, 'Female': 1}
-smartphone_map = {'less than 2': 0, '2-4': 1, '4-6': 2, '6-8': 3, 'more than 8': 4}
-approx_map = {'less than 1': 0, '1-3': 1, '3-5': 2, 'more than 5': 3}
-notification_map = {'Instantly': 0, 'Every few minutes': 1, 'Every hour': 2, 'Rarely': 3}
-sleep_map_time = {'less than 1': 0, '1-2': 1, '2-3': 2, 'more than 3': 3}
-hour_map = {'less than 5': 0, '5-7': 1, 'more than 9': 2, '7-9': 3}
-tired_map = {'no': 2, 'sometimes': 1, 'yes': 0}
-study_map = {'less than 1': 0, '1-3': 1, '3-5': 2, 'more than 5': 3}
-cgpa_map = {'less than 5': 0, '5-6': 1, '6-7': 2, '7-8': 3, '8-9': 4, 'more than 9': 5}
-addicted_map = {'very much': 0, 'Moderately': 1, 'not at all': 2}
-stressed_map = {'Never': 0, 'often': 1, 'rarely': 2}
-spending_map = {'agree': 0, 'neutral': 1, 'disagree': 2}
-anxious_map = {'always': 0, 'often': 2, 'rarely': 3, 'never': 4}
-yes_no_3map = {'No': 1, 'Yes': 0}
-yes_no_1map = {'no': 0, 'yes': 1}
-yes_no_2map = {'yes': 0, 'no': 1}
+# --- 5. PAGE NAVIGATION ---
+if not st.session_state.started:
+    # --- LANDING PAGE ---
+   st.markdown("""
+        <style>
+        .main-title {
+            font-size: 6rem;
+            font-weight: 700;
+            color: #1E88E5;
+            margin-bottom: 0;
+        }
+        .subtitle {
+            font-size: 1.2rem;
+            color: #555;
+            margin-bottom: 2rem;
+        }
+        </style>
+    """, unsafe_allow_html=True)
 
-# --- STEP 5: UI ---
-st.title(" Digital Usage Productivity Analysis")
-st.sidebar.header("Configuration")
-model_choice = st.sidebar.selectbox("Model", ("Random Forest", "Logistic Regression", "Decision Tree"))
+   st.markdown('<h1 class="main-title"> Digital Usage Productivity Analysis</h1>', unsafe_allow_html=True)
+   st.markdown('<p class="subtitle">Decoding the impact of digital habits on cognitive performance.</p>', unsafe_allow_html=True)
 
-col1, col2 = st.columns(2)
-with col1:
-    age = st.number_input("What is your age?", 10, 100, 20)
-    gender = st.selectbox("Gender", list(gender_map.keys()))
-    usage = st.selectbox(" Daily Smartphone Usage", list(smartphone_map.keys()))
-    notif = st.selectbox("How often do you check notifications?", list(notification_map.keys()))
-    social_media = st.selectbox("Approximate time spent per day on Social media ?(in hours)", list(approx_map.keys()))
-    sleep_before = st.selectbox("Do you use phone before sleeping?", ["Yes", "No"])
-    sleep_time = st.selectbox("Hours before sleep usage", list(sleep_map_time.keys()))
-    wake_up = st.selectbox("Use device immediately after waking up?", ["Yes", "No"])
-    daily_sleep = st.selectbox("Total sleep hours daily?", list(hour_map.keys()))
+    # --- 2. THE THREE PILLARS SECTION ---
+    # Using columns to create a "Feature Grid"
+   col1, col2, col3 = st.columns(3)
 
-with col2:
-    tired = st.selectbox("Feel tired/sleepy during the day?", list(tired_map.keys()))
-    study_hrs = st.selectbox("Daily Study Hours?", list(study_map.keys()))
-    cgpa_val = st.selectbox("What is your CGPA?", list(cgpa_map.keys()))
-    focus_val = st.selectbox("Able to focus during study?", ["yes", "no"])
-    stress_val = st.selectbox("Digital usage is main source of stress?", ["yes", "no"])
-    addict_val = st.selectbox("Feel addicted to digital devices?", list(addicted_map.keys()))
-    scr_stress = st.selectbox("Stressed after long screen time?", list(stressed_map.keys()))
-    mood_val = st.selectbox("Spending time online affects mood?", list(spending_map.keys()))
-    anxious_val = st.selectbox("Anxious without phone/internet?", list(anxious_map.keys()))
+   with col1:
+        st.markdown("### Predict\nAdvanced ML algorithms analyze your smartphone and social media patterns to classify your productivity.")
 
-# --- STEP 6: PREDICTION & REPORT ---
-if st.button("Generate Detailed Report"):
-    data = {
-        'What is your age?': age, 
-        'Gender?': gender_map[gender],
-        'How many hours per day do you use your smartphone?': smartphone_map[usage],
-        'Approximate time spent per day on Social media ?(in hours)': approx_map[social_media],
-        'How often do you check notifications?': notification_map[notif],
-        'Do you use your phone before sleeping?': yes_no_3map[sleep_before],
-        'How long do you use your phone before going to sleep?(in hours)': sleep_map_time[sleep_time],
-        'Do you use your device immediately after waking up?': yes_no_3map[wake_up],
-        'how many hours you sleep daily?': hour_map[daily_sleep],
-        'Do you feel tired or sleepy during the day?': tired_map[tired],
-        'How many hours do you study daily?': study_map[study_hrs], 
-        'what is your cgpa?': cgpa_map[cgpa_val],
-        'Are you able to focus while study sessions?': yes_no_1map[focus_val],
-        'is your digital usage is main source of your stress?': yes_no_2map[stress_val],
-        'Do you feel addicted to digital devices?': addicted_map[addict_val],
-        'Do you feel stressed after long hours of screen time?': stressed_map[scr_stress],
-        'Does spending a lot of time online affect your mood?': spending_map[mood_val],
-        'Do you feel anxious when you cannot access your phone or internet?': anxious_map[anxious_val]
-    }
+   with col2:
+        st.markdown("### Analyze\nIdentify your 'Digital Friction' points through Key Contributing Factors and SHAP analysis.")
+
+   with col3:
+        st.markdown("### Optimize\nReceive evidence-based suggestions to reclaim your focus and optimize your workflow.")
+
+   st.divider()
+
+    # --- 3. PROJECT DESCRIPTION SECTION ---
+   with st.container():
+        left_co, right_co = st.columns([2, 1])
+        with left_co:
+            st.markdown("#### **About the Project**")
+            st.write("""
+                In an era of constant connectivity, our project bridges the gap between raw data and actionable habits. 
+                Whether it's smartphone latency, notification frequency, or pre-sleep digital duration, 
+                our engine identifies exactly what drives your focus.
+            """)
+            
+            # Key Highlights
+            st.markdown("- **Explainable AI:** We don't just predict; we explain the 'Why'.")
+            st.markdown("- **Behavioral Science:** Data-backed suggestions for habit change.")
+            st.markdown("- **Multi-Model Support:** Choose between Random Forest, Decision Trees, or Logistic Regression.")
+
+        #with right_co:
+            # A visual box for "Project Goal"
+            #st.success("**Goal:** To empower users with data-driven insights to break digital addiction and boost academic success.")
+
+   st.divider()
+
+    # --- 4. ACTION CALL ---
+   st.info("Ready to see how your digital habits stack up? Provide your details below.")
     
-    input_df = pd.DataFrame([data])
-    sel_model = rf if model_choice == "Random Forest" else (lr if model_choice == "Logistic Regression" else dt)
-    
-    with st.spinner(" Computing Analysis..."):
-        shap_vals, pred_label, pred_proba = manual_shap_single(sel_model, input_df, X_train_bg)
+    # Large primary button
+   st.button("Start My Analysis ➔", on_click=start_analysis, type="primary", use_container_width=True)
 
-    # --- FORMATTING THE CONSOLE REPORT ---
-    report_output = io.StringIO()
-    print("=" * 62, file=report_output)
-    print("        PRODUCTIVITY PREDICTION REPORT", file=report_output)
-    print("=" * 62, file=report_output)
-    print(f"  Predicted Class  : {CLASS_EMOJIS[pred_label]} {CLASS_NAMES[pred_label]}", file=report_output)
-    print(f"  Confidence       : {pred_proba[pred_label]*100:.1f}%", file=report_output)
-    print(f"  All Probabilities: Low={pred_proba[0]:.3f} | Medium={pred_proba[1]:.3f} | High={pred_proba[2]:.3f}", file=report_output)
-    print("-" * 62, file=report_output)
-    print("\n KEY CONTRIBUTING FACTORS", file=report_output)
-    print("-" * 62, file=report_output)
-    print(f"  {'#':<3} {'Factor':<38} {'Impact':>8}  {'Effect'}", file=report_output)
-    print(f"  {'-'*3} {'-'*38} {'-'*8}  {'-'*20}", file=report_output)
+else:
+    # --- FORM PAGE ---
+    st.title(" Behavioral Data Entry")
+    st.sidebar.header("Configuration")
+    model_choice = st.sidebar.selectbox("Model", ("Random Forest", "Logistic Regression", "Decision Tree"))
+    st.sidebar.button("Go to Home", on_click=go_home)
 
-    local_df = pd.DataFrame({'Feature': input_df.columns, 'Value': input_df.values.flatten(), 'SHAP': shap_vals})
-    local_df['Label'] = local_df['Feature'].map(lambda f: FEATURE_LABELS.get(f, f))
-    local_df['Abs'] = local_df['SHAP'].abs()
-    top = local_df.sort_values('Abs', ascending=False).head(6)
+    col1, col2 = st.columns(2)
+    with col1:
+        age = st.number_input("What is your age?", 10, 100, 20)
+        gender = st.selectbox("Gender", list(gender_map.keys()))
+        usage = st.selectbox(" Daily Smartphone Usage", list(smartphone_map.keys()))
+        notif = st.selectbox("How often do you check notifications?", list(notification_map.keys()))
+        social_media = st.selectbox("Approximate time spent per day on Social media ?(in hours)", list(approx_map.keys()))
+        sleep_before = st.selectbox("Do you use phone before sleeping?", ["Yes", "No"])
+        sleep_time = st.selectbox("Hours before sleep usage", list(sleep_map_time.keys()))
+        wake_up = st.selectbox("Use device immediately after waking up?", ["Yes", "No"])
+        daily_sleep = st.selectbox("Total sleep hours daily?", list(hour_map.keys()))
 
-    for i, row in top.reset_index(drop=True).iterrows():
-        label = row['Label'][:37]
-        shap_v = row['SHAP']
-        direction = "▲ Boosts" if shap_v > 0 else "▼ Hurts "
-        bar = "+" * min(int(abs(shap_v) * 200), 10) if shap_v > 0 else "-" * min(int(abs(shap_v) * 200), 10)
-        print(f"  {i+1:<3} {label:<38} {shap_v:>+8.4f}  {direction} [{bar}]", file=report_output)
+    with col2:
+        tired = st.selectbox("Feel tired/sleepy during the day?", list(tired_map.keys()))
+        study_hrs = st.selectbox("Daily Study Hours?", list(study_map.keys()))
+        cgpa_val = st.selectbox("What is your CGPA?", list(cgpa_map.keys()))
+        focus_val = st.selectbox("Able to focus during study?", ["yes", "no"])
+        stress_val = st.selectbox("Digital usage is main source of stress?", ["yes", "no"])
+        addict_val = st.selectbox("Feel addicted to digital devices?", list(addicted_map.keys()))
+        scr_stress = st.selectbox("Stressed after long screen time?", list(stressed_map.keys()))
+        mood_val = st.selectbox("Spending time online affects mood?", list(spending_map.keys()))
+        anxious_val = st.selectbox("Anxious without phone/internet?", list(anxious_map.keys()))
 
-    st.code(report_output.getvalue(), language="text")
+    if st.button("Generate Detailed Report"):
+        data = {
+            'What is your age?': age, 'Gender?': gender_map[gender],
+            'How many hours per day do you use your smartphone?': smartphone_map[usage],
+            'Approximate time spent per day on Social media ?(in hours)': approx_map[social_media],
+            'How often do you check notifications?': notification_map[notif],
+            'Do you use your phone before sleeping?': yes_no_3map[sleep_before],
+            'How long do you use your phone before going to sleep?(in hours)': sleep_map_time[sleep_time],
+            'Do you use your device immediately after waking up?': yes_no_3map[wake_up],
+            'how many hours you sleep daily?': hour_map[daily_sleep],
+            'Do you feel tired or sleepy during the day?': tired_map[tired],
+            'How many hours do you study daily?': study_map[study_hrs], 
+            'what is your cgpa?': cgpa_map[cgpa_val],
+            'Are you able to focus while study sessions?': yes_no_1map[focus_val],
+            'is your digital usage is main source of your stress?': yes_no_2map[stress_val],
+            'Do you feel addicted to digital devices?': addicted_map[addict_val],
+            'Do you feel stressed after long hours of screen time?': stressed_map[scr_stress],
+            'Does spending a lot of time online affect your mood?': spending_map[mood_val],
+            'Do you feel anxious when you cannot access your phone or internet?': anxious_map[anxious_val]
+        }
+        
+        input_df = pd.DataFrame([data])
+        sel_model = rf if model_choice == "Random Forest" else (lr if model_choice == "Logistic Regression" else dt)
+        
+        if X_train_bg is not None:
+            with st.spinner("Analyzing data..."):
+                shap_vals, pred_label, pred_proba = manual_shap_single(sel_model, input_df, X_train_bg)
 
-    # --- SUGGESTIONS SECTION ---
-    st.markdown("###  Recommendations")
-    for _, row in top.iterrows():
-        label = row['Label']
-        dir_key = get_factor_direction(label, row['Value'], row['SHAP'])
-        if label in SUGGESTIONS:
-            st.info(f"**{label}:** {SUGGESTIONS[label].get(dir_key)}")
+            # --- GENERATE FORMATTED REPORT ---
+            report_output = io.StringIO()
+            print("=" * 62, file=report_output)
+            print("        PRODUCTIVITY PREDICTION REPORT", file=report_output)
+            print("=" * 62, file=report_output)
+            print(f"  Predicted Class  : {CLASS_EMOJIS[pred_label]} {CLASS_NAMES[pred_label]}", file=report_output)
+            print(f"  Confidence       : {pred_proba[pred_label]*100:.1f}%", file=report_output)
+            print(f"  All Probabilities: Low={pred_proba[0]:.3f} | Medium={pred_proba[1]:.3f} | High={pred_proba[2]:.3f}", file=report_output)
+            print("-" * 62, file=report_output)
+            print("\n KEY CONTRIBUTING FACTORS", file=report_output)
+            print("-" * 62, file=report_output)
+            print(f"  {'#':<3} {'Factor':<38} {'Impact':>8}  {'Effect'}", file=report_output)
+            print(f"  {'-'*3} {'-'*38} {'-'*8}  {'-'*20}", file=report_output)
+
+            local_df = pd.DataFrame({'Feature': input_df.columns, 'Value': input_df.values.flatten(), 'SHAP': shap_vals})
+            local_df['Label'] = local_df['Feature'].map(lambda f: FEATURE_LABELS.get(f, f))
+            local_df['Abs'] = local_df['SHAP'].abs()
+            top = local_df.sort_values('Abs', ascending=False).head(6)
+
+            for i, row in top.reset_index(drop=True).iterrows():
+                label = row['Label'][:37]
+                shap_v = row['SHAP']
+                direction = "▲ Boosts" if shap_v > 0 else "▼ Hurts "
+                bar = "+" * min(int(abs(shap_v) * 200), 10) if shap_v > 0 else "-" * min(int(abs(shap_v) * 200), 10)
+                print(f"  {i+1:<3} {label:<38} {shap_v:>+8.4f}  {direction} [{bar}]", file=report_output)
+
+            st.code(report_output.getvalue(), language="text")
+
+            # --- SUGGESTIONS ---
+            st.markdown("### 💡 Recommendations")
+            for _, row in top.iterrows():
+                label = row['Label']
+                dir_key = get_factor_direction(label, row['Value'], row['SHAP'])
+                if label in SUGGESTIONS:
+                    st.info(f"**{label}:** {SUGGESTIONS[label].get(dir_key)}")
+        else:
+            st.error("Cannot compute report. Reference data missing.")
